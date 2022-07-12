@@ -1,14 +1,23 @@
 let elForm = document.querySelector(".js-form");
 let elInput = document.querySelector(".js-input");
-let count = document.querySelector(".count");
-let checket = document.querySelector(".checket");
-let over = document.querySelector(".over");
-let elList = document.querySelector(".js-list"); 
+let elCount = document.querySelector(".count");
+let elChecket = document.querySelector(".checket");
+let elOver = document.querySelector(".over");
+let elList = document.querySelector(".js-list");  
+let elBtnGroupp = document.querySelector(".btn-group");    
 
-let todos = [];
+let localTodos = JSON.parse(window.localStorage.getItem("list"))
+let todos = localTodos || [];
 let deletedTodos = [];
 
 let renderTodo = (array, node) => {
+  node.innerHTML = ""
+
+  elCount.textContent = todos.length;
+  elChecket.textContent = todos.filter((e) => e.isComplete).length
+  elOver.textContent = todos.filter((e) => !e.isComplete).length
+
+
   array.forEach(element => {
     let newItem = document.createElement("li");
     let newButton = document.createElement("button");
@@ -28,14 +37,14 @@ let renderTodo = (array, node) => {
     if(element.isComplete) {
       newSpan.style.textDecoration = "line-through";
       newCheckbox.checked = true; 
-    }
-    
+    }  
     newItem.appendChild(newCheckbox);
     newItem.appendChild(newSpan);
     newItem.appendChild(newButton);
     node.appendChild(newItem);
   })
 }
+renderTodo(todos, elList)
 
 elList.addEventListener("click", function(evt) {
   if(evt.target.matches(".deleti-btn")) {
@@ -43,23 +52,18 @@ elList.addEventListener("click", function(evt) {
     elList.innerHTML = "";
     let findedIndex = todos.findIndex(todo => todo.id == deletedId);
     todos.splice(findedIndex, 1);
-    todoCheck(todos);
-    todoOver(todos);
-    todoCount(todos.length);
     renderTodo(todos, elList);
+    window.localStorage.setItem("list", JSON.stringify(todos))
   }
   if(evt.target.matches(".todo-check")) {
     let checkeId = evt.target.dataset.todoId;
     elList.innerHTML = "";
     let findedElement = todos.find(todo => todo.id == checkeId);
     findedElement.isComplete = !findedElement.isComplete;
-    todoCheck(todos);
-    todoOver(todos);
     renderTodo(todos, elList);
+    window.localStorage.setItem("list", JSON.stringify(todos))
   }
 })
-
-
 
 elForm.addEventListener("submit", function(evt) {
   evt.preventDefault();
@@ -73,38 +77,48 @@ elForm.addEventListener("submit", function(evt) {
   };
 
   todos.push(obj);
-  todoCount(todos.length); 
-  todoOver(todos);
   renderTodo(todos, elList);
+  window.localStorage.setItem("list", JSON.stringify(todos))
   elInput.value = "";
 })
 
-const todoCount = num => { 
-  count.textContent = num
-}
 
-const todoCheck = arr => { 
-  let count = 0;
-  for(let e of arr) {
-    if(e.isComplete) {
-      count += 1;
-    }
+elBtnGroupp.addEventListener("click", function(evt) {
+  if(evt.target.matches(".btn-all")) {
+    renderTodo(todos, elList)
   }
-  checket.textContent = count;  
-}
-
-
-const todoOver = arr => { 
-  let count = 0;
-  for(let e of arr) {
-    if(!e.isComplete) {
-      count += 1;
-    }
+  if(evt.target.matches(".btn-completed")) {
+    const completedTodos = todos.filter(e => e.isComplete);
+    renderTodo(completedTodos, elList)
   }
-  over.textContent = count;  
+  if(evt.target.matches(".btn-uncompleted")) {
+    const uncompletedTodos = todos.filter(e => !e.isComplete);
+    renderTodo(uncompletedTodos, elList)
+  }
+  if(evt.target.matches(".btn-clear")) {
+    window.localStorage.removeItem("list")
+    window.location.reload()
+    renderTodo(todos, elList)
+  }
+})
+
+let elBtn = document.querySelector(".mode");
+let elBody = document.querySelector(".body");
+var theme = false
+function changeBg() {
+  if(window.localStorage.getItem("theme") == "dark") {
+    elBody.classList.add("dark");
+  }else {
+    elBody.classList.remove("dark");
+  }
 }
+elBtn.addEventListener("click", function() {
+  theme = !theme;
+  window.localStorage.setItem("theme", theme ? "dark" : "light")
+  changeBg()
+})
 
-
+changeBg()
 
 
 
